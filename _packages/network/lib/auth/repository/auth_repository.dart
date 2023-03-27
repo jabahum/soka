@@ -11,6 +11,9 @@ abstract class AuthRepository {
   // signin with facebook
   Future<void> signInWithFacebook(String email);
 
+// signIn Anonymously
+  Future<void> signInAnonymously(String email);
+
   // signOut
   Future<void> signOut();
 }

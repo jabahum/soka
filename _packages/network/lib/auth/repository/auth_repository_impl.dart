@@ -115,4 +115,10 @@ class AuthRepositoryImpl extends AuthRepository {
     // TODO: implement signInWithFacebook
     throw UnimplementedError();
   }
+  
+  @override
+  Future<void> signInAnonymously(String email) {
+    // TODO: implement signInAnonymously
+    throw UnimplementedError();
+  }
 }
