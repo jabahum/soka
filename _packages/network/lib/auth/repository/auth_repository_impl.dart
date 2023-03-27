@@ -85,7 +85,10 @@ class AuthRepositoryImpl extends AuthRepository {
 
   @override
   Future<void> signOut() async {
-    await firebaseAuth.signOut();
+    Future.wait([
+      googleSignIn.signOut(),
+      firebaseAuth.signOut(),
+    ]);
   }
 
   @override
@@ -115,7 +118,7 @@ class AuthRepositoryImpl extends AuthRepository {
     // TODO: implement signInWithFacebook
     throw UnimplementedError();
   }
-  
+
   @override
   Future<void> signInAnonymously(String email) {
     // TODO: implement signInAnonymously
