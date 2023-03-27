@@ -11,10 +11,13 @@ import '../../utils/google_sign_in_mocks_base.dart';
 class CustomMockFirebaseAuth extends Mock
     implements firebase_auth.FirebaseAuth {}
 
+// class FirebaseUserMock extends Mock implements firebase_auth. {}
+
+// class GoogleSignInMock extends Mock implements  GoogleSignInMock()
+
 class FirebaseAuthSetup {
   late MockUser mockFirebaseUser;
   late firebase_auth.FirebaseAuth mockFirebaseAuth;
-  late MockGoogleSignIn googleSignIn;
 
   FirebaseAuthSetup({bool signedIn = true}) {
     mockFirebaseUser = MockUser();
@@ -25,16 +28,37 @@ class FirebaseAuthSetup {
   }
 }
 
+// customer firebase auth
+class CustomFirebaseAuthSetup {
+  late firebase_auth.FirebaseAuth mockFirebaseAuth;
+  late When mockVerifyPhoneNumber;
+  late When mockGoogleLoggedIn;
+  late When mockFacebookLoggedIn;
+
+  CustomFirebaseAuthSetup() {
+    mockFirebaseAuth = CustomMockFirebaseAuth();
+
+    // google login
+    mockGoogleLoggedIn =
+        when(() => mockFirebaseAuth.signInWithCredential(credential));
+    // facebook login
+    mockFacebookLoggedIn =
+        when(() => mockFirebaseAuth.signInWithCredential(credential));
+  }
+}
+
 void main() {
   group('testing getSignedInUser: ', () {
     test("signed in user exists", () async {
       // mock
       FirebaseAuthSetup mocks = FirebaseAuthSetup(signedIn: true);
 
+      // GoogleSignInAuthentication googleMock  = GoogleSignInAuthentication()
+
       AuthRepositoryImpl firebaseAuthRepository = AuthRepositoryImpl(
-        firebaseAuth: mocks.mockFirebaseAuth,
-        googleSignIn: mocks.googleSignIn,
-      );
+          firebaseAuth: mocks.mockFirebaseAuth,
+          googleSignIn: null,
+          facebookAuth: null);
 
       // perform test
       var result = firebaseAuthRepository.firebaseAuth.currentUser;
@@ -49,9 +73,9 @@ void main() {
     FirebaseAuthSetup mocks = FirebaseAuthSetup(signedIn: true);
     firebase_auth.FirebaseAuth mockFirebaseAuth = mocks.mockFirebaseAuth;
     AuthRepositoryImpl firebaseAuthRepository = AuthRepositoryImpl(
-      firebaseAuth: mocks.mockFirebaseAuth,
-      googleSignIn: mocks.googleSignIn,
-    );
+        firebaseAuth: mocks.mockFirebaseAuth,
+        googleSignIn: null,
+        facebookAuth: null);
     // perform test
     expect(mockFirebaseAuth.currentUser, equals(mocks.mockFirebaseUser));
     await firebaseAuthRepository.signOut();

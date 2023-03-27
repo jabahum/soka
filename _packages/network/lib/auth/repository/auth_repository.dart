@@ -14,6 +14,9 @@ abstract class AuthRepository {
 // signIn Anonymously
   Future<void> signInAnonymously(String email);
 
+  // password reset
+  Future<void> passwordReset(String email);
+
   // signOut
   Future<void> signOut();
 }

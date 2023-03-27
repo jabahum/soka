@@ -1,5 +1,6 @@
 import 'package:core/errors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'auth_repository.dart';
@@ -7,8 +8,10 @@ import 'auth_repository.dart';
 class AuthRepositoryImpl extends AuthRepository {
   final FirebaseAuth firebaseAuth;
   final GoogleSignIn googleSignIn;
+  final FacebookAuth facebookAuth;
 
   AuthRepositoryImpl({
+    required this.facebookAuth,
     required this.firebaseAuth,
     required this.googleSignIn,
   });
@@ -64,10 +67,6 @@ class AuthRepositoryImpl extends AuthRepository {
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'account-exists-with-different-credential':
-
-          /// Thrown if there already exists an account with the email address asserted by the credential.
-          /// Resolve this by calling [fetchSignInMethodsForEmail] and then asking the user to sign in using one of the returned providers. Once the user is signed in,
-          /// the original credential can be linked to the user with [linkWithCredential].
           break;
         case 'invalid-credential':
           break;
@@ -86,6 +85,7 @@ class AuthRepositoryImpl extends AuthRepository {
   @override
   Future<void> signOut() async {
     Future.wait([
+      facebookAuth.logOut(),
       googleSignIn.signOut(),
       firebaseAuth.signOut(),
     ]);
@@ -114,14 +114,73 @@ class AuthRepositoryImpl extends AuthRepository {
   }
 
   @override
-  Future<void> signInWithFacebook(String email) {
-    // TODO: implement signInWithFacebook
-    throw UnimplementedError();
+  Future<void> signInWithFacebook(String email) async {
+    try {
+      // trigger facebook sign flow
+      final LoginResult result = await facebookAuth.login(
+        permissions: [
+          "public_profile",
+          "email",
+        ],
+      );
+
+      // create credentials
+      final credential =
+          FacebookAuthProvider.credential(result.accessToken!.token);
+
+      // sign with credentials
+      await firebaseAuth.signInWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'account-exists-with-different-credential':
+          break;
+        case 'invalid-credential':
+          break;
+        case 'operation-not-allowed':
+          break;
+        case 'user-disabled':
+          break;
+        default:
+          break;
+      }
+    } on Object catch (e) {
+      throw Exception('Unknown Error');
+    }
   }
 
   @override
-  Future<void> signInAnonymously(String email) {
-    // TODO: implement signInAnonymously
-    throw UnimplementedError();
+  Future<void> signInAnonymously(String email) async {
+    try {
+      await firebaseAuth.signInAnonymously();
+      print("Signed in with temporary account.");
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case "operation-not-allowed":
+          break;
+        default:
+          break;
+      }
+    } on Object catch (e) {
+      throw Exception('Unknown Error');
+    }
+  }
+
+  @override
+  Future<void> passwordReset(String email) async {
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'network-request-failed') {
+        throw Exception('No Internet Connection');
+      } else if (e.code == "email-already-in-use") {
+        throw Exception('Email already in use');
+      } else if (e.code == 'invalid-email') {
+        throw Exception('Invalid email');
+      } else if (e.code == 'weak-password') {
+        throw Exception('Weak Password');
+      } else {
+        throw Exception('Unknown Error ');
+      }
+    }
   }
 }
